@@ -137,6 +137,12 @@ enum {
 	POWER_SUPPLY_PL_NON_STACKED_BATFET,
 };
 
+/* Parallel output connection topology */
+enum {
+	POWER_SUPPLY_PL_OUTPUT_VPH,
+	POWER_SUPPLY_PL_OUTPUT_VBAT,
+};
+
 enum {
 	POWER_SUPPLY_PD_INACTIVE = 0,
 	POWER_SUPPLY_PD_ACTIVE,
@@ -337,6 +343,7 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_CP_IRQ_STATUS,
 	POWER_SUPPLY_PROP_CP_ILIM,
 	POWER_SUPPLY_PROP_IRQ_STATUS,
+	POWER_SUPPLY_PROP_PARALLEL_OUTPUT_MODE,
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT,
 	/* Properties of type `const char *' */
