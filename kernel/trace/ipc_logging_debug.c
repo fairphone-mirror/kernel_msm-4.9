@@ -78,16 +78,17 @@ static ssize_t debug_read_helper(struct file *file, char __user *buff,
 	struct dentry *d = file->f_path.dentry;
 	char *buffer;
 	int bsize;
+	int srcu_idx;
 	int r;
 
-	r = debugfs_file_get(d);
+	r = debugfs_use_file_start(d, &srcu_idx);
 	if (!r) {
 		ilctxt = file->private_data;
 		r = kref_get_unless_zero(&ilctxt->refcount) ? 0 : -EIO;
-	} else {
-		return r;
 	}
-	debugfs_file_put(d);
+	debugfs_use_file_finish(srcu_idx);
+	if (r)
+		return r;
 
 	buffer = kmalloc(count, GFP_KERNEL);
 	if (!buffer) {
@@ -118,17 +119,18 @@ static ssize_t debug_write_ctrl(struct file *file, const char __user *buff,
 	struct ipc_log_context *ilctxt;
 	struct dentry *d = file->f_path.dentry;
 	int bsize = 1;
+	int srcu_idx;
 	int r;
 	char local_buf[3];
 
-	r = debugfs_file_get(d);
+	r = debugfs_use_file_start(d, &srcu_idx);
 	if (!r) {
 		ilctxt = file->private_data;
 		r = kref_get_unless_zero(&ilctxt->refcount) ? 0 : -EIO;
-	} else {
-		return r;
 	}
-	debugfs_file_put(d);
+	debugfs_use_file_finish(srcu_idx);
+	if (r)
+		return r;
 
 	if (copy_from_user(local_buf, buff, bsize)) {
 		count = -EFAULT;
@@ -170,16 +172,17 @@ static ssize_t debug_read_ctrl(struct file *file, char __user *buff,
 	struct ipc_log_context *ilctxt;
 	struct dentry *d = file->f_path.dentry;
 	int bsize = 2;
+	int srcu_idx;
 	int r;
 
-	r = debugfs_file_get(d);
+	r = debugfs_use_file_start(d, &srcu_idx);
 	if (!r) {
 		ilctxt = file->private_data;
 		r = kref_get_unless_zero(&ilctxt->refcount) ? 0 : -EIO;
-	} else {
-		return r;
 	}
-	debugfs_file_put(d);
+	debugfs_use_file_finish(srcu_idx);
+	if (r)
+		return r;
 
 	bsize = simple_read_from_buffer(buff, count, ppos,
 				ilctxt->disabled?"1\n":"0\n", bsize);
