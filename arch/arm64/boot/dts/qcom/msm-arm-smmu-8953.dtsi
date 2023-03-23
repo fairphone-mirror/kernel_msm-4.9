@@ -16,7 +16,7 @@
 &soc {
 	kgsl_smmu: arm,smmu-kgsl@1c40000 {
 		status = "ok";
-		compatible = "qcom,smmu-v2";
+		compatible = "qcom,smmu-v2-DISABLED";
 		qcom,tz-device-id = "GPU";
 		reg = <0x1c40000 0x10000>;
 		#iommu-cells = <1>;
