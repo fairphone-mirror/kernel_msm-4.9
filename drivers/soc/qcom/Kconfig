@@ -98,4 +98,16 @@ config QCOM_SCM
 	bool "Secure Channel Manager (SCM) support"
 	default n
 
+config MSM_PM
+	depends on PM
+	select MSM_IDLE_STATS if DEBUG_FS
+	select CPU_IDLE_MULTIPLE_DRIVERS
+	bool "Qualcomm platform specific PM driver"
+	help
+	  Platform specific power driver to manage cores and l2 low power
+	  modes. It interface with various system driver and put the cores
+	  into low power modes. It implements OS initiated scheme and
+	  determines last CPU to call into PSCI for cluster Low power
+	  modes.
+
 endmenu
