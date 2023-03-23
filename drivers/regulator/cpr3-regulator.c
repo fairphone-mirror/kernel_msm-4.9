@@ -6347,9 +6347,11 @@ static int cpr3_regulator_cpu_hotplug_callback(struct notifier_block *nb,
 
 	action &= ~CPU_TASKS_FROZEN;
 
+#if 0
 	if (action == CPU_ONLINE
 	    && cpumask_test_cpu(cpu, &ctrl->irq_affinity_mask))
 		irq_set_affinity(ctrl->irq, &ctrl->irq_affinity_mask);
+#endif
 
 	return NOTIFY_OK;
 }
@@ -6602,6 +6604,7 @@ int cpr3_regulator_register(struct platform_device *pdev,
 		}
 	}
 
+#if 0
 	if (ctrl->irq && !cpumask_empty(&ctrl->irq_affinity_mask)) {
 		irq_set_affinity(ctrl->irq, &ctrl->irq_affinity_mask);
 
@@ -6609,6 +6612,7 @@ int cpr3_regulator_register(struct platform_device *pdev,
 			= cpr3_regulator_cpu_hotplug_callback;
 		register_hotcpu_notifier(&ctrl->cpu_hotplug_notifier);
 	}
+#endif
 
 	mutex_lock(&cpr3_controller_list_mutex);
 	cpr3_regulator_debugfs_ctrl_add(ctrl);
@@ -6649,8 +6653,10 @@ int cpr3_regulator_unregister(struct cpr3_controller *ctrl)
 	cpr3_regulator_debugfs_ctrl_remove(ctrl);
 	mutex_unlock(&cpr3_controller_list_mutex);
 
+#if 0
 	if (ctrl->irq && !cpumask_empty(&ctrl->irq_affinity_mask))
 		unregister_hotcpu_notifier(&ctrl->cpu_hotplug_notifier);
+#endif
 
 	if (ctrl->ctrl_type == CPR_CTRL_TYPE_CPR4) {
 		rc = cpr3_ctrl_clear_cpr4_config(ctrl);
