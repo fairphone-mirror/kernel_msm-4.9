@@ -18,7 +18,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/mod_devicetable.h>
 #include <linux/platform_device.h>
-#include <linux/sched.h>
+#include <linux/sched/clock.h>
 #include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/atomic.h>
