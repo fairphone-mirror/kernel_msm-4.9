@@ -9,3 +9,10 @@ obj-$(CONFIG_COMMON_CLK_MSM)	+= clock-voter.o
 obj-$(CONFIG_COMMON_CLK_MSM)	+= reset.o
 obj-$(CONFIG_COMMON_CLK_MSM)	+= clock-debug.o
 obj-$(CONFIG_COMMON_CLK_MSM)	+= gdsc.o
+
+ifeq ($(CONFIG_COMMON_CLK_MSM), y)
+obj-$(CONFIG_ARCH_MSM8953)	+= clock-gcc-8953.o
+obj-$(CONFIG_ARCH_MSM8953)	+= clock-cpu-8953.o
+obj-$(CONFIG_ARCH_MSM8953)	+= clock-rcgwr.o
+obj-$(CONFIG_ARCH_MSM8953)	+= clock-cpu-sdm632.o
+endif
