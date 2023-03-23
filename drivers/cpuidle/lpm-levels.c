@@ -32,7 +32,7 @@
 #include <linux/smp.h>
 #include <linux/dma-mapping.h>
 #include <linux/moduleparam.h>
-#include <linux/sched.h>
+#include <linux/sched/clock.h>
 #include <linux/cpu_pm.h>
 #include <linux/cpuhotplug.h>
 #include <soc/qcom/pm.h>
@@ -73,7 +73,7 @@ enum debug_event {
 };
 
 struct lpm_debug {
-	cycle_t time;
+	u64 time;
 	enum debug_event evt;
 	int cpu;
 	uint32_t arg1;
@@ -595,22 +595,17 @@ static void update_history(struct cpuidle_device *dev, int idx);
 
 static inline bool is_cpu_biased(int cpu)
 {
-	u64 now = sched_clock();
-	u64 last = sched_get_cpu_last_busy_time(cpu);
-
-	if (!last)
-		return false;
-
-	return (now - last) < BIAS_HYST;
+	return false;
 }
 
 static int cpu_power_select(struct cpuidle_device *dev,
 		struct lpm_cpu *cpu)
 {
+	ktime_t delta_next;
 	int best_level = 0;
 	uint32_t latency_us = pm_qos_request_for_cpu(PM_QOS_CPU_DMA_LATENCY,
 							dev->cpu);
-	s64 sleep_us = ktime_to_us(tick_nohz_get_sleep_length());
+	s64 sleep_us = ktime_to_us(tick_nohz_get_sleep_length(&delta_next));
 	uint32_t modified_time_us = 0;
 	uint32_t next_event_us = 0;
 	int i, idx_restrict;
@@ -723,13 +718,13 @@ static unsigned int get_next_online_cpu(bool from_idle)
 
 	if (!from_idle)
 		return next_cpu;
-	next_event.tv64 = KTIME_MAX;
+	next_event = KTIME_MAX;
 	for_each_online_cpu(cpu) {
 		ktime_t *next_event_c;
 
 		next_event_c = get_next_event_cpu(cpu);
-		if (next_event_c->tv64 < next_event.tv64) {
-			next_event.tv64 = next_event_c->tv64;
+		if (*next_event_c < next_event) {
+			next_event = *next_event_c;
 			next_cpu = cpu;
 		}
 	}
@@ -748,7 +743,7 @@ static uint64_t get_cluster_sleep_time(struct lpm_cluster *cluster,
 	if (!from_idle)
 		return ~0ULL;
 
-	next_event.tv64 = KTIME_MAX;
+	next_event = KTIME_MAX;
 	cpumask_and(&online_cpus_in_cluster,
 			&cluster->num_children_in_sync, cpu_online_mask);
 
@@ -756,9 +751,8 @@ static uint64_t get_cluster_sleep_time(struct lpm_cluster *cluster,
 		ktime_t *next_event_c;
 
 		next_event_c = get_next_event_cpu(cpu);
-		if (next_event_c->tv64 < next_event.tv64) {
-			next_event.tv64 = next_event_c->tv64;
-		}
+		if (*next_event_c < next_event)
+			next_event = *next_event_c;
 
 		if (from_idle && lpm_prediction && cluster->lpm_prediction) {
 			history = &per_cpu(hist, cpu);
@@ -1356,7 +1350,7 @@ static bool psci_enter_sleep(struct lpm_cpu *cpu, int idx, bool from_idle)
 }
 
 static int lpm_cpuidle_select(struct cpuidle_driver *drv,
-		struct cpuidle_device *dev)
+		struct cpuidle_device *dev, bool *stop_tick)
 {
 	struct lpm_cpu *cpu = per_cpu(cpu_lpm, dev->cpu);
 
@@ -1437,7 +1431,7 @@ exit:
 	return idx;
 }
 
-static void lpm_cpuidle_freeze(struct cpuidle_device *dev,
+static void lpm_cpuidle_s2idle(struct cpuidle_device *dev,
 		struct cpuidle_driver *drv, int idx)
 {
 	struct lpm_cpu *cpu = per_cpu(cpu_lpm, dev->cpu);
@@ -1509,7 +1503,6 @@ static struct cpuidle_governor lpm_governor = {
 	.name =		"qcom",
 	.rating =	30,
 	.select =	lpm_cpuidle_select,
-	.owner =	THIS_MODULE,
 };
 
 static int cluster_cpuidle_register(struct lpm_cluster *cl)
@@ -1550,7 +1543,7 @@ static int cluster_cpuidle_register(struct lpm_cluster *cl)
 			st->target_residency = 0;
 			st->enter = lpm_cpuidle_enter;
 			if (i == lpm_cpu->nlevels - 1)
-				st->enter_freeze = lpm_cpuidle_freeze;
+				st->enter_s2idle = lpm_cpuidle_s2idle;
 		}
 
 		lpm_cpu->drv->state_count = lpm_cpu->nlevels;
@@ -1700,7 +1693,7 @@ static const struct platform_suspend_ops lpm_suspend_ops = {
 	.wake = lpm_suspend_wake,
 };
 
-static const struct platform_freeze_ops lpm_freeze_ops = {
+static const struct platform_s2idle_ops lpm_s2idle_ops = {
 	.prepare = lpm_suspend_prepare,
 	.restore = lpm_suspend_wake,
 };
@@ -1733,7 +1726,7 @@ static int lpm_probe(struct platform_device *pdev)
 	 * how late lpm_levels gets initialized.
 	 */
 	suspend_set_ops(&lpm_suspend_ops);
-	freeze_set_ops(&lpm_freeze_ops);
+	s2idle_set_ops(&lpm_s2idle_ops);
 	hrtimer_init(&lpm_hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	for_each_possible_cpu(cpu) {
 		cpu_histtimer = &per_cpu(histtimer, cpu);
@@ -1798,7 +1791,6 @@ static struct platform_driver lpm_driver = {
 	.probe = lpm_probe,
 	.driver = {
 		.name = "lpm-levels",
-		.owner = THIS_MODULE,
 		.suppress_bind_attrs = true,
 		.of_match_table = lpm_mtch_tbl,
 	},
