@@ -969,5 +969,61 @@ config REGULATOR_RPM_SMD
 	  be used on systems which contain an RPM which communicates with the
 	  application processor over SMD.
 
+config REGULATOR_CPR
+	bool "RBCPR regulator driver for APC"
+	depends on OF
+	help
+	  Compile in RBCPR (RapidBridge Core Power Reduction) driver to support
+	  corner vote for APC power rail. The driver takes PTE process voltage
+	  suggestions in efuse as initial settings. It converts corner vote
+	  to voltage value before writing to a voltage regulator API, such as
+	  that provided by spm-regulator driver.
+
+config REGULATOR_CPR3
+	bool "CPR3 regulator core support"
+	help
+	  This driver supports Core Power Reduction (CPR) version 3 controllers
+	  which are used by some Qualcomm Technologies, Inc. (QTI) SoCs to
+	  manage important voltage regulators.  CPR3 controllers are capable of
+	  monitoring several ring oscillator sensing loops simultaneously.  The
+	  CPR3 controller informs software when the silicon conditions require
+	  the supply voltage to be increased or decreased.  On certain supply
+	  rails, the CPR3 controller is able to propagate the voltage increase
+	  or decrease requests all the way to the PMIC without software
+	  involvement.
+
+config REGULATOR_CPR4_APSS
+	bool "CPR4 regulator for APSS"
+	depends on OF
+	select REGULATOR_CPR3
+	help
+	  This driver supports Qualcomm Technologies, Inc. APSS application
+	  processor specific features including memory array power mux (APM)
+	  switching, one CPR4 thread which monitor the two APSS clusters that
+	  are both powered by a shared supply, hardware closed-loop auto
+	  voltage stepping, voltage adjustments based on online core count,
+	  voltage adjustments based on temperature readings, and voltage
+	  adjustments for performance boost mode. This driver reads both initial
+	  voltage and CPR target quotient values out of hardware fuses.
+
+config REGULATOR_CPRH_KBSS
+	bool "CPRH regulator for KBSS"
+	depends on OF
+	select REGULATOR_CPR3
+	help
+	  This driver supports Qualcomm Technologies, Inc. KBSS application
+	  processor specific features including CPR hardening (CPRh) and two
+	  CPRh controllers which monitor the two KBSS clusters each powered by
+	  independent voltage supplies. This driver reads both initial voltage
+	  and CPR target quotient values out of hardware fuses.
+
+config REGULATOR_MEM_ACC
+	tristate "QTI Memory accelerator regulator driver"
+	help
+	  Say y here to enable the memory accelerator driver for Qualcomm
+	  Technologies, Inc. (QTI) chips. The accelerator controls delays
+	  applied for memory accesses.  This driver configures the power-mode
+	  (corner) for the memory accelerator.
+
 endif
 
