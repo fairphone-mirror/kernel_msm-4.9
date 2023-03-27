@@ -32,7 +32,6 @@
 #include <linux/regulator/of_regulator.h>
 #include <linux/input/qpnp-power-on.h>
 #include <linux/qpnp/qpnp-pbs.h>
-#include <linux/qpnp/qpnp-misc.h>
 #include <linux/power_supply.h>
 
 #define PMIC_VER_8941           0x01
@@ -223,7 +222,6 @@ struct qpnp_pon {
 	u8			pon_ver;
 	u8			warm_reset_reason1;
 	u8			warm_reset_reason2;
-	u8                      twm_state;
 	bool			is_spon;
 	bool			store_hard_reset_reason;
 	bool			resin_hard_reset_disable;
@@ -231,7 +229,6 @@ struct qpnp_pon {
 	bool			ps_hold_hard_reset_disable;
 	bool			ps_hold_shutdown_disable;
 	bool			kpdpwr_dbc_enable;
-	bool                    support_twm_config;
 	bool			resin_pon_reset;
 	ktime_t			kpdpwr_last_release_time;
 	struct notifier_block   pon_nb;
@@ -512,31 +509,6 @@ static int qpnp_pon_reset_config(struct qpnp_pon *pon,
 	bool disable = false;
 	u16 rst_en_reg;
 	struct qpnp_pon_config *cfg;
-
-	/* Ignore the PS_HOLD reset config if TWM ENTRY is enabled */
-	if (pon->support_twm_config && pon->twm_state == PMIC_TWM_ENABLE) {
-		rc = qpnp_pbs_trigger_event(pon->pbs_dev_node,
-					PON_TWM_ENTRY_PBS_BIT);
-		if (rc < 0) {
-			pr_err("Unable to trigger PBS trigger for TWM entry rc=%d\n",
-							rc);
-			return rc;
-		}
-
-		cfg = qpnp_get_cfg(pon, PON_KPDPWR);
-		if (cfg) {
-			/* configure KPDPWR_S2 to Hard reset */
-			rc = qpnp_pon_masked_write(pon, cfg->s2_cntl_addr,
-						QPNP_PON_S2_CNTL_TYPE_MASK,
-						PON_POWER_OFF_HARD_RESET);
-			if (rc < 0)
-				pr_err("Unable to config KPDPWR_N S2 for hard-reset rc=%d\n",
-					rc);
-		}
-
-		pr_crit("PMIC configured for TWM entry\n");
-		return 0;
-	}
 
 	if (pon->pon_ver == QPNP_PON_GEN1_V1)
 		rst_en_reg = QPNP_PON_PS_HOLD_RST_CTL(pon);
@@ -2122,35 +2094,6 @@ static int read_gen2_pon_off_reason(struct qpnp_pon *pon, u16 *reason,
 	return 0;
 }
 
-static int pon_twm_notifier_cb(struct notifier_block *nb,
-				unsigned long action, void *data)
-{
-	struct qpnp_pon *pon = container_of(nb, struct qpnp_pon, pon_nb);
-
-	if (action != PMIC_TWM_CLEAR &&
-			action != PMIC_TWM_ENABLE) {
-		pr_debug("Unsupported option %lu\n", action);
-		return NOTIFY_OK;
-	}
-
-	pon->twm_state = (u8)action;
-	pr_debug("TWM state = %d\n", pon->twm_state);
-
-	return NOTIFY_OK;
-}
-
-static int pon_register_twm_notifier(struct qpnp_pon *pon)
-{
-	int rc;
-
-	pon->pon_nb.notifier_call = pon_twm_notifier_cb;
-	rc = qpnp_misc_twm_notifier_register(&pon->pon_nb);
-	if (rc < 0)
-		pr_err("Failed to register pon_twm_notifier_cb rc=%d\n", rc);
-
-	return rc;
-}
-
 static int qpnp_pon_probe(struct platform_device *pdev)
 {
 	struct qpnp_pon *pon;
@@ -2431,22 +2374,6 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev,
 			"Unable to initialize PON configurations rc: %d\n", rc);
 		goto err_out;
-	}
-
-	if (of_property_read_bool(pon->pdev->dev.of_node,
-					"qcom,support-twm-config")) {
-		pon->support_twm_config = true;
-		rc = pon_register_twm_notifier(pon);
-		if (rc < 0) {
-			pr_err("Failed to register TWM notifier rc=%d\n", rc);
-			return rc;
-		}
-		pon->pbs_dev_node = of_parse_phandle(pon->pdev->dev.of_node,
-						"qcom,pbs-client", 0);
-		if (!pon->pbs_dev_node) {
-			pr_err("Missing qcom,pbs-client property\n");
-			return -EINVAL;
-		}
 	}
 
 	rc = of_property_read_u32(pon->pdev->dev.of_node,
