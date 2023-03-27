@@ -280,7 +280,7 @@ static int ohci_urb_enqueue (
 						ed->interval);
 				if (urb_priv->td_cnt >= urb_priv->length) {
 					++urb_priv->td_cnt;	/* Mark it */
-					ohci_dbg(ohci, "iso underrun %p (%u+%u < %u)\n",
+					ohci_dbg(ohci, "iso underrun %pK (%u+%u < %u)\n",
 							urb, frame, length,
 							next);
 				}
@@ -388,7 +388,7 @@ sanitize:
 		/* caller was supposed to have unlinked any requests;
 		 * that's not our job.  can't recover; must leak ed.
 		 */
-		ohci_err (ohci, "leak ed %p (#%02x) state %d%s\n",
+		ohci_err (ohci, "leak ed %pK (#%02x) state %d%s\n",
 			ed, ep->desc.bEndpointAddress, ed->state,
 			list_empty (&ed->td_list) ? "" : " (has tds)");
 		td_free (ohci, ed->dummy);
@@ -1013,7 +1013,7 @@ static void ohci_stop (struct usb_hcd *hcd)
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(CONFIG_PM) || defined(CONFIG_USB_PCI)
+#if defined(CONFIG_PM) || defined(CONFIG_PCI)
 
 /* must not be called from interrupt context */
 int ohci_restart(struct ohci_hcd *ohci)
@@ -1046,7 +1046,7 @@ int ohci_restart(struct ohci_hcd *ohci)
 		case ED_UNLINK:
 			break;
 		default:
-			ohci_dbg(ohci, "bogus ed %p state %d\n",
+			ohci_dbg(ohci, "bogus ed %pK state %d\n",
 					ed, ed->state);
 		}
 
@@ -1238,6 +1238,11 @@ MODULE_LICENSE ("GPL");
 #define SA1111_DRIVER		ohci_hcd_sa1111_driver
 #endif
 
+#ifdef CONFIG_USB_OHCI_HCD_DAVINCI
+#include "ohci-da8xx.c"
+#define DAVINCI_PLATFORM_DRIVER	ohci_hcd_da8xx_driver
+#endif
+
 #ifdef CONFIG_USB_OHCI_HCD_PPC_OF
 #include "ohci-ppc-of.c"
 #define OF_PLATFORM_DRIVER	ohci_hcd_ppc_of_driver
@@ -1271,7 +1276,7 @@ static int __init ohci_hcd_mod_init(void)
 		return -ENODEV;
 
 	printk(KERN_INFO "%s: " DRIVER_DESC "\n", hcd_name);
-	pr_debug ("%s: block sizes: ed %zd td %zd\n", hcd_name,
+	pr_debug ("%s: block sizes: ed %Zd td %Zd\n", hcd_name,
 		sizeof (struct ed), sizeof (struct td));
 	set_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
 
@@ -1317,9 +1322,19 @@ static int __init ohci_hcd_mod_init(void)
 		goto error_tmio;
 #endif
 
+#ifdef DAVINCI_PLATFORM_DRIVER
+	retval = platform_driver_register(&DAVINCI_PLATFORM_DRIVER);
+	if (retval < 0)
+		goto error_davinci;
+#endif
+
 	return retval;
 
 	/* Error path */
+#ifdef DAVINCI_PLATFORM_DRIVER
+	platform_driver_unregister(&DAVINCI_PLATFORM_DRIVER);
+ error_davinci:
+#endif
 #ifdef TMIO_OHCI_DRIVER
 	platform_driver_unregister(&TMIO_OHCI_DRIVER);
  error_tmio:
@@ -1355,6 +1370,9 @@ module_init(ohci_hcd_mod_init);
 
 static void __exit ohci_hcd_mod_exit(void)
 {
+#ifdef DAVINCI_PLATFORM_DRIVER
+	platform_driver_unregister(&DAVINCI_PLATFORM_DRIVER);
+#endif
 #ifdef TMIO_OHCI_DRIVER
 	platform_driver_unregister(&TMIO_OHCI_DRIVER);
 #endif

@@ -7,8 +7,6 @@
  *
  * All of the sysfs file attributes for usb devices and interfaces.
  *
- * Released under the GPLv2 only.
- * SPDX-License-Identifier: GPL-2.0
  */
 
 
@@ -16,7 +14,6 @@
 #include <linux/string.h>
 #include <linux/usb.h>
 #include <linux/usb/quirks.h>
-#include <linux/of.h>
 #include "usb.h"
 
 /* Active configuration fields */
@@ -106,17 +103,6 @@ static ssize_t bConfigurationValue_store(struct device *dev,
 }
 static DEVICE_ATTR_IGNORE_LOCKDEP(bConfigurationValue, S_IRUGO | S_IWUSR,
 		bConfigurationValue_show, bConfigurationValue_store);
-
-#ifdef CONFIG_OF
-static ssize_t devspec_show(struct device *dev, struct device_attribute *attr,
-			    char *buf)
-{
-	struct device_node *of_node = dev->of_node;
-
-	return sprintf(buf, "%pOF\n", of_node);
-}
-static DEVICE_ATTR_RO(devspec);
-#endif
 
 /* String fields */
 #define usb_string_attr(name)						\
@@ -803,9 +789,6 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_remove.attr,
 	&dev_attr_removable.attr,
 	&dev_attr_ltm_capable.attr,
-#ifdef CONFIG_OF
-	&dev_attr_devspec.attr,
-#endif
 	NULL,
 };
 static struct attribute_group dev_attr_grp = {
@@ -865,7 +848,11 @@ read_descriptors(struct file *filp, struct kobject *kobj,
 	size_t srclen, n;
 	int cfgno;
 	void *src;
+	int retval;
 
+	retval = usb_lock_device_interruptible(udev);
+	if (retval < 0)
+		return -EINTR;
 	/* The binary attribute begins with the device descriptor.
 	 * Following that are the raw descriptor entries for all the
 	 * configurations (config plus subsidiary descriptors).
@@ -890,6 +877,7 @@ read_descriptors(struct file *filp, struct kobject *kobj,
 			off -= srclen;
 		}
 	}
+	usb_unlock_device(udev);
 	return count - nleft;
 }
 

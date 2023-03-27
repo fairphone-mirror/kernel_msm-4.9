@@ -107,6 +107,8 @@
  */
 #define DMA_ATTR_PRIVILEGED		(1UL << 16)
 
+#define DMA_ERROR_CODE       (~(dma_addr_t)0)
+
 /*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
  * It can be given to a device to use as a DMA source or target.  A CPU cannot

@@ -15,9 +15,6 @@
  *		(usb_device_id matching changes by Adam J. Richter)
  *	(C) Copyright Greg Kroah-Hartman 2002-2003
  *
- * Released under the GPLv2 only.
- * SPDX-License-Identifier: GPL-2.0
- *
  * NOTE! This is not actually a driver at all, rather this is
  * just a collection of helper routines that implement the
  * matching, probing, releasing, suspending and resuming for
@@ -1457,6 +1454,9 @@ int usb_suspend(struct device *dev, pm_message_t msg)
 {
 	struct usb_device	*udev = to_usb_device(dev);
 
+	if (udev->bus->skip_resume && udev->state == USB_STATE_SUSPENDED)
+		return 0;
+
 	unbind_no_pm_drivers_interfaces(udev);
 
 	/* From now on we are sure all drivers support suspend/resume
@@ -1485,6 +1485,16 @@ int usb_resume(struct device *dev, pm_message_t msg)
 {
 	struct usb_device	*udev = to_usb_device(dev);
 	int			status;
+
+	/*
+	 * Some buses would like to keep their devices in suspend
+	 * state after system resume.  Their resume happen when
+	 * a remote wakeup is detected or interface driver start
+	 * I/O. And in the case when the system is restoring from
+	 * hibernation, make sure all the devices are resumed.
+	 */
+	if (udev->bus->skip_resume && msg.event != PM_EVENT_RESTORE)
+		return 0;
 
 	/* For all calls, take the device back to full power and
 	 * tell the PM core in case it was autosuspended previously.

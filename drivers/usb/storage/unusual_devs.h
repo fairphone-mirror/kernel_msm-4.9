@@ -42,7 +42,7 @@
  *	- a patch that adds the entry for your device, including your
  *	  email address right above the entry (plus maybe a brief
  *	  explanation of the reason for the entry),
- *	- a copy of /sys/kernel/debug/usb/devices with your device plugged in
+ *	- a copy of /proc/bus/usb/devices with your device plugged in
  *	  running with this patch.
  * Send your submission to either Phil Dibowitz <phil@ipom.com> or
  * Alan Stern <stern@rowland.harvard.edu>, and don't forget to CC: the
@@ -176,7 +176,7 @@ UNUSUAL_DEV(  0x0420, 0x0001, 0x0100, 0x0100,
 
 /*
  * Reported by Andrew Nayenko <relan@bk.ru>
- * Updated for new firmware by Phillip Potter <phil@philpotter.co.uk>
+ * Updated for new firmware by Phillip Potter <phillipinda@hotmail.com>
  */
 UNUSUAL_DEV(  0x0421, 0x0019, 0x0592, 0x0610,
 		"Nokia",
@@ -2240,18 +2240,6 @@ UNUSUAL_DEV( 0x1908, 0x3335, 0x0200, 0x0200,
 		"Photo Frame",
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_NO_READ_DISC_INFO ),
-
-/*
- * Reported by Matthias Schwarzott <zzam@gentoo.org>
- * The Amazon Kindle treats SYNCHRONIZE CACHE as an indication that
- * the host may be finished with it, and automatically ejects its
- * emulated media unless it receives another command within one second.
- */
-UNUSUAL_DEV( 0x1949, 0x0004, 0x0000, 0x9999,
-		"Amazon",
-		"Kindle",
-		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
-		US_FL_SENSE_AFTER_SYNC ),
 
 /*
  * Reported by Oliver Neukum <oneukum@suse.com>
