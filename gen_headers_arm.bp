@@ -366,6 +366,7 @@ gen_headers_out_arm = [
     "linux/msdos_fs.h",
     "linux/msg.h",
     "linux/msm_ion.h",
+    "linux/msm_ipa.h",
     "linux/mtio.h",
     "linux/n_r3964.h",
     "linux/nbd-netlink.h",
