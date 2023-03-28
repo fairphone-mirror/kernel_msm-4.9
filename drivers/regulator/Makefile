@@ -131,5 +131,6 @@ obj-$(CONFIG_REGULATOR_CPR3) += cpr3-regulator.o cpr3-util.o
 obj-$(CONFIG_REGULATOR_CPR4_APSS) += cpr4-apss-regulator.o
 obj-$(CONFIG_REGULATOR_CPRH_KBSS) += cprh-kbss-regulator.o
 obj-$(CONFIG_REGULATOR_MEM_ACC) += mem-acc-regulator.o
+obj-$(CONFIG_REGULATOR_QPNP_LCDB) += qpnp-lcdb-regulator.o
 
 ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
