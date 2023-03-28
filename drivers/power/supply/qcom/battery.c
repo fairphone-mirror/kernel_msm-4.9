@@ -280,6 +280,7 @@ static ssize_t version_show(struct class *c, struct class_attribute *attr,
 	return snprintf(buf, PAGE_SIZE, "%d.%d\n",
 			DRV_MAJOR_VERSION, DRV_MINOR_VERSION);
 }
+static CLASS_ATTR_RO(version);
 
 /*************
  * SLAVE PCT *
@@ -317,6 +318,8 @@ static ssize_t slave_pct_store(struct class *c, struct class_attribute *attr,
 
 	return count;
 }
+static struct class_attribute class_attr_slave_pct =
+		__ATTR(parallel_pct, 0644, slave_pct_show, slave_pct_store);
 
 /************************
  * RESTRICTED CHARGIGNG *
@@ -357,6 +360,7 @@ static ssize_t restrict_chg_store(struct class *c, struct class_attribute *attr,
 no_change:
 	return count;
 }
+static CLASS_ATTR_RW(restrict_chg);
 
 static ssize_t restrict_cur_show(struct class *c, struct class_attribute *attr,
 			char *ubuf)
@@ -385,6 +389,7 @@ static ssize_t restrict_cur_store(struct class *c, struct class_attribute *attr,
 
 	return count;
 }
+static CLASS_ATTR_RW(restrict_cur);
 
 /****************************
  * FCC STEPPING IN PROGRESS *
@@ -397,19 +402,18 @@ static ssize_t fcc_stepping_in_progress_show(struct class *c,
 
 	return snprintf(ubuf, PAGE_SIZE, "%d\n", chip->step_fcc);
 }
+static CLASS_ATTR_RO(fcc_stepping_in_progress);
 
-static struct class_attribute pl_attributes[] = {
-	[VER]			= __ATTR_RO(version),
-	[SLAVE_PCT]		= __ATTR(parallel_pct, 0644,
-					slave_pct_show, slave_pct_store),
-	[RESTRICT_CHG_ENABLE]	= __ATTR(restricted_charging, 0644,
-					restrict_chg_show, restrict_chg_store),
-	[RESTRICT_CHG_CURRENT]	= __ATTR(restricted_current, 0644,
-					restrict_cur_show, restrict_cur_store),
+static struct attribute *batt_class_attrs[] = {
+	[VER]			= &class_attr_version.attr,
+	[SLAVE_PCT]		= &class_attr_slave_pct.attr,
+	[RESTRICT_CHG_ENABLE]	= &class_attr_restrict_chg.attr,
+	[RESTRICT_CHG_CURRENT]	= &class_attr_restrict_cur.attr,
 	[FCC_STEPPING_IN_PROGRESS]
-				= __ATTR_RO(fcc_stepping_in_progress),
-	__ATTR_NULL,
+				= &class_attr_fcc_stepping_in_progress.attr,
+	NULL,
 };
+ATTRIBUTE_GROUPS(batt_class);
 
 /*********
  *  FCC  *
@@ -1602,7 +1606,7 @@ int qcom_batt_init(int smb_version)
 	pl_config_init(chip, smb_version);
 	chip->restricted_current = DEFAULT_RESTRICTED_CURRENT_UA;
 
-	chip->pl_ws = wakeup_source_register("qcom-battery");
+	chip->pl_ws = wakeup_source_register(NULL, "qcom-battery");
 	if (!chip->pl_ws)
 		goto cleanup;
 
@@ -1681,7 +1685,7 @@ int qcom_batt_init(int smb_version)
 	chip->pl_disable = true;
 	chip->qcom_batt_class.name = "qcom-battery",
 	chip->qcom_batt_class.owner = THIS_MODULE,
-	chip->qcom_batt_class.class_attrs = pl_attributes;
+	chip->qcom_batt_class.class_groups = batt_class_groups;
 
 	rc = class_register(&chip->qcom_batt_class);
 	if (rc < 0) {
