@@ -2273,7 +2273,7 @@ static int qpnp_lcdb_parse_dt(struct qpnp_lcdb *lcdb)
 	return 0;
 }
 
-static ssize_t qpnp_lcdb_irq_control(struct class *c,
+static ssize_t secure_mode_store(struct class *c,
 					struct class_attribute *attr,
 					const char *buf, size_t count)
 {
@@ -2304,12 +2304,13 @@ static ssize_t qpnp_lcdb_irq_control(struct class *c,
 
 	return count;
 }
+static CLASS_ATTR_WO(secure_mode);
 
-static struct  class_attribute lcdb_attributes[] = {
-	[0] =  __ATTR(secure_mode, 0664, NULL,
-				qpnp_lcdb_irq_control),
-	__ATTR_NULL,
+static struct attribute *lcdb_attrs[] = {
+	&class_attr_secure_mode.attr,
+	NULL,
 };
+ATTRIBUTE_GROUPS(lcdb);
 
 static int qpnp_lcdb_regulator_probe(struct platform_device *pdev)
 {
@@ -2353,7 +2354,7 @@ static int qpnp_lcdb_regulator_probe(struct platform_device *pdev)
 
 	lcdb->lcdb_class.name = "lcd_bias";
 	lcdb->lcdb_class.owner = THIS_MODULE;
-	lcdb->lcdb_class.class_attrs = lcdb_attributes;
+	lcdb->lcdb_class.class_groups = lcdb_groups;
 
 	rc = class_register(&lcdb->lcdb_class);
 	if (rc < 0) {
