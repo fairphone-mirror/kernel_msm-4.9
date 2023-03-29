@@ -59,6 +59,6 @@ static inline struct device_node *of_batterydata_get_best_profile(
 		struct device_node *batterydata_container_node,
 		int batt_id_kohm, const char *batt_type)
 {
-	return -ENXIO;
+	return NULL;
 }
 #endif /* CONFIG_OF_QPNP */
