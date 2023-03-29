@@ -13,4 +13,13 @@ config QPNP_SMB5
 	  VBUS and VCONN regulators are registered for supporting OTG,
 	  and powered Type-C cables respectively.
 
+config QPNP_QG
+	bool "QPNP Qgauge driver"
+	depends on MFD_SPMI_PMIC
+	help
+	  Say Y here to enable the Qualcomm Technologies, Inc. QGauge driver
+	  which uses the periodic sampling of the battery voltage and current
+	  to determine the battery state-of-charge (SOC) and supports other
+	  battery management features.
+
 endmenu
