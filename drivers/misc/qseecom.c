@@ -47,6 +47,7 @@
 #include "qseecom_kernel.h"
 #include <crypto/ice.h>
 #include <linux/delay.h>
+#include <linux/signal.h>
 
 #include <linux/compat.h>
 #include "compat_qseecom.h"
