@@ -1467,12 +1467,10 @@ static int qcom_ice_config_start(struct platform_device *pdev,
 		struct request *req,
 		struct ice_data_setting *setting, bool async)
 {
-	struct ice_crypto_setting *crypto_data;
 	struct ice_crypto_setting pfk_crypto_data = {0};
 	int ret = 0;
 	bool is_pfe = false;
 	sector_t data_size;
-	union map_info *info;
 	unsigned long sec_end = 0;
 	struct ice_device *ice_dev = NULL;
 	int ice_rev = 0;
@@ -1516,26 +1514,6 @@ static int qcom_ice_config_start(struct platform_device *pdev,
 
 		return qti_ice_setting_config(req, ice_dev,
 				&pfk_crypto_data, setting);
-	}
-
-	if (!ice_fde_flag) {
-		if (bio_flagged(req->bio, BIO_INLINECRYPT)) {
-			info = dm_get_rq_mapinfo(req);
-			if (!info) {
-				pr_debug("%s info not available in request\n",
-							__func__);
-				return 0;
-			}
-			crypto_data = (struct ice_crypto_setting *)info->ptr;
-			if (!crypto_data) {
-				pr_err("%s crypto_data not available in req\n",
-							__func__);
-				return -EINVAL;
-			}
-			return qti_ice_setting_config(req, ice_dev,
-						crypto_data, setting);
-		}
-		return 0;
 	}
 
 	if (req->part && req->part->info && req->part->info->volname[0]) {
