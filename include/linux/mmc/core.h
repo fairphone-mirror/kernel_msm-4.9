@@ -189,6 +189,8 @@ static inline bool mmc_request_crypto_enabled(const struct mmc_request *mrq)
 
 struct mmc_card;
 
+extern void mmc_flush_detect_work(struct mmc_host *host);
+
 void mmc_wait_for_req(struct mmc_host *host, struct mmc_request *mrq);
 int mmc_wait_for_cmd(struct mmc_host *host, struct mmc_command *cmd,
 		int retries);
