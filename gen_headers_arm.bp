@@ -451,6 +451,7 @@ gen_headers_out_arm = [
     "linux/qg.h",
     "linux/qnx4_fs.h",
     "linux/qnxtypes.h",
+    "linux/qrng.h",
     "linux/qrtr.h",
     "linux/qseecom.h",
     "linux/quota.h",
