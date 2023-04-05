@@ -652,10 +652,6 @@ struct mmc_host {
 	} embedded_sdio_data;
 #endif
 
-#ifdef CONFIG_BLOCK
-	int			latency_hist_enabled;
-	struct io_latency_state io_lat_s;
-#endif
 	/* Command Queue Engine (CQE) support */
 	const struct mmc_cqe_ops *cqe_ops;
 	void			*cqe_private;

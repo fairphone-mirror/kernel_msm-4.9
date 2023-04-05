@@ -240,9 +240,6 @@ struct request {
 
 	/* for bidi */
 	struct request *next_rq;
-
-	ktime_t			lat_hist_io_start;
-	int			lat_hist_enabled;
 };
 
 static inline bool blk_op_is_scsi(unsigned int op)

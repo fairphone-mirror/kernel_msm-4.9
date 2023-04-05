@@ -986,10 +986,6 @@ int mmc_add_host(struct mmc_host *host)
 		pr_err("%s: failed to create clk scale sysfs group with err %d\n",
 				__func__, err);
 
-#ifdef CONFIG_BLOCK
-	mmc_latency_hist_sysfs_init(host);
-#endif
-
 	err = sysfs_create_group(&host->class_dev.kobj, &dev_attr_grp);
 	if (err)
 		pr_err("%s: failed to create sysfs group with err %d\n",
@@ -1020,10 +1016,6 @@ void mmc_remove_host(struct mmc_host *host)
 
 #ifdef CONFIG_DEBUG_FS
 	mmc_remove_host_debugfs(host);
-#endif
-
-#ifdef CONFIG_BLOCK
-	mmc_latency_hist_sysfs_exit(host);
 #endif
 
 	sysfs_remove_group(&host->parent->kobj, &dev_attr_grp);
