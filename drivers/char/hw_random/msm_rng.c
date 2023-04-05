@@ -30,9 +30,8 @@
 #include <linux/cdev.h>
 #include <linux/delay.h>
 #include <linux/crypto.h>
+#include <linux/sched/signal.h>
 #include <crypto/internal/rng.h>
-
-#include <linux/platform_data/qcom_crypto_device.h>
 
 
 
