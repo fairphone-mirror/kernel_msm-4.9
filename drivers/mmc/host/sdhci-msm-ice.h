@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015, 2017-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -168,7 +168,6 @@ inline int sdhci_msm_ice_get_status(struct sdhci_host *host,
 }
 inline void sdhci_msm_ice_print_regs(struct sdhci_host *host)
 {
-	return;
 }
 #endif /* CONFIG_MMC_SDHCI_MSM_ICE */
 #endif /* __SDHCI_MSM_ICE_H__ */

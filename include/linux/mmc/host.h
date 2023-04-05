@@ -14,6 +14,8 @@
 #include <linux/device.h>
 #include <linux/devfreq.h>
 #include <linux/fault-inject.h>
+#include <linux/blkdev.h>
+#include <linux/extcon.h>
 
 #include <linux/mmc/core.h>
 #include <linux/mmc/card.h>
@@ -497,42 +499,42 @@ struct mmc_host {
 
 	u32			caps2;		/* More host capabilities */
 
-#define MMC_CAP2_BOOTPART_NOACC	(1 << 0)	/* Boot partition no access */
-#define MMC_CAP2_FULL_PWR_CYCLE	(1 << 2)	/* Can do full power cycle */
-#define MMC_CAP2_HS200_1_8V_SDR	(1 << 5)        /* can support */
-#define MMC_CAP2_HS200_1_2V_SDR	(1 << 6)        /* can support */
+#define MMC_CAP2_BOOTPART_NOACC (1 << 0)        /* Boot partition no access */
+#define MMC_CAP2_FULL_PWR_CYCLE (1 << 2)        /* Can do full power cycle */
+#define MMC_CAP2_HS200_1_8V_SDR (1 << 5)        /* can support */
+#define MMC_CAP2_HS200_1_2V_SDR (1 << 6)        /* can support */
 #define MMC_CAP2_HS200		(MMC_CAP2_HS200_1_8V_SDR | \
-				 MMC_CAP2_HS200_1_2V_SDR)
-#define MMC_CAP2_HC_ERASE_SZ	(1 << 9)	/* High-capacity erase size */
-#define MMC_CAP2_CD_ACTIVE_HIGH	(1 << 10)	/* Card-detect signal active high */
-#define MMC_CAP2_RO_ACTIVE_HIGH	(1 << 11)	/* Write-protect signal active high */
-#define MMC_CAP2_PACKED_RD	(1 << 12)	/* Allow packed read */
-#define MMC_CAP2_PACKED_WR	(1 << 13)	/* Allow packed write */
+				MMC_CAP2_HS200_1_2V_SDR)
+#define MMC_CAP2_HC_ERASE_SZ    (1 << 9)        /* High-capacity erase size */
+#define MMC_CAP2_CD_ACTIVE_HIGH (1 << 10)       /* Card-detect signal active high */
+#define MMC_CAP2_RO_ACTIVE_HIGH (1 << 11)       /* Write-protect signal active high */
+#define MMC_CAP2_PACKED_RD      (1 << 12)       /* Allow packed read */
+#define MMC_CAP2_PACKED_WR      (1 << 13)       /* Allow packed write */
 #define MMC_CAP2_PACKED_CMD	(MMC_CAP2_PACKED_RD | \
-				 MMC_CAP2_PACKED_WR)
-#define MMC_CAP2_NO_PRESCAN_POWERUP (1 << 14)	/* Don't power up before scan */
-#define MMC_CAP2_HS400_1_8V	(1 << 15)	/* Can support HS400 1.8V */
-#define MMC_CAP2_HS400_1_2V	(1 << 16)	/* Can support HS400 1.2V */
+				MMC_CAP2_PACKED_WR)
+#define MMC_CAP2_NO_PRESCAN_POWERUP (1 << 14)   /* Don't power up before scan */
+#define MMC_CAP2_HS400_1_8V     (1 << 15)       /* Can support HS400 1.8V */
+#define MMC_CAP2_HS400_1_2V     (1 << 16)       /* Can support HS400 1.2V */
 #define MMC_CAP2_HS400		(MMC_CAP2_HS400_1_8V | \
 				 MMC_CAP2_HS400_1_2V)
-#define MMC_CAP2_HSX00_1_2V	(MMC_CAP2_HS200_1_2V_SDR | MMC_CAP2_HS400_1_2V)
+#define MMC_CAP2_HSX00_1_2V     (MMC_CAP2_HS200_1_2V_SDR | MMC_CAP2_HS400_1_2V)
 #define MMC_CAP2_SDIO_IRQ_NOTHREAD (1 << 17)
-#define MMC_CAP2_NO_WRITE_PROTECT (1 << 18)	/* No physical write protect pin, assume that card is always read-write */
-#define MMC_CAP2_NO_SDIO	(1 << 19)	/* Do not send SDIO commands during initialization */
-#define MMC_CAP2_HS400_ES	(1 << 20)	/* Host supports enhanced strobe */
-#define MMC_CAP2_NO_SD		(1 << 21)	/* Do not send SD commands during initialization */
-#define MMC_CAP2_NO_MMC		(1 << 22)	/* Do not send (e)MMC commands during initialization */
-#define MMC_CAP2_PACKED_WR_CONTROL (1 << 23)	/* Allow write packing control */
-#define MMC_CAP2_CLK_SCALE	(1 << 24)	/* Allow dynamic clk scaling */
-#define MMC_CAP2_ASYNC_SDIO_IRQ_4BIT_MODE (1 << 25)	/* Allows Asynchronous SDIO irq while card is in 4-bit mode */
-#define MMC_CAP2_NONHOTPLUG	(1 << 26)	/*Don't support hotplug*/
+#define MMC_CAP2_NO_WRITE_PROTECT (1 << 18)     /* No physical write protect pin, assume that card is always read-write */
+#define MMC_CAP2_NO_SDIO        (1 << 19)       /* Do not send SDIO commands during initialization */
+#define MMC_CAP2_HS400_ES       (1 << 20)       /* Host supports enhanced strobe */
+#define MMC_CAP2_NO_SD          (1 << 21)       /* Do not send SD commands during initialization */
+#define MMC_CAP2_NO_MMC         (1 << 22)       /* Do not send (e)MMC commands during initialization */
+#define MMC_CAP2_PACKED_WR_CONTROL (1 << 23)    /* Allow write packing control */
+#define MMC_CAP2_CLK_SCALE      (1 << 24)       /* Allow dynamic clk scaling */
+#define MMC_CAP2_ASYNC_SDIO_IRQ_4BIT_MODE (1 << 25)     /* Allows Asynchronous SDIO irq while card is in 4-bit mode */
+#define MMC_CAP2_NONHOTPLUG     (1 << 26)       /*Don't support hotplug*/
 /* Some hosts need additional tuning */
-#define MMC_CAP2_HS400_POST_TUNING	(1 << 27)
-#define MMC_CAP2_CMD_QUEUE	(1 << 28)	/* support eMMC command queue */
+#define MMC_CAP2_HS400_POST_TUNING      (1 << 27)
+#define MMC_CAP2_CMD_QUEUE      (1 << 28)       /* support eMMC command queue */
 #define MMC_CAP2_SANITIZE       (1 << 29)               /* Support Sanitize */
-#define MMC_CAP2_SLEEP_AWAKE	(1 << 30)	/* Use Sleep/Awake (CMD5) */
+#define MMC_CAP2_SLEEP_AWAKE    (1 << 30)       /* Use Sleep/Awake (CMD5) */
 /* use max discard ignoring max_busy_timeout parameter */
-#define MMC_CAP2_MAX_DISCARD_SIZE	(1 << 31)
+#define MMC_CAP2_MAX_DISCARD_SIZE       (1 << 31)
 
 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
 
@@ -621,6 +623,8 @@ struct mmc_host {
 
 	bool			err_occurred;
 	u32			err_stats[MMC_ERR_MAX];
+	ktime_t			last_failed_rq_time;
+	ktime_t			last_completed_rq_time;
 
 	struct mmc_async_req	*areq;		/* active async req */
 	struct mmc_context_info	context_info;	/* async synchronization info */
@@ -639,16 +643,25 @@ struct mmc_host {
 	int			dsr_req;	/* DSR value is valid */
 	u32			dsr;	/* optional driver stage (DSR) value */
 
+#ifdef CONFIG_MMC_EMBEDDED_SDIO
+	struct {
+		struct sdio_cis			*cis;
+		struct sdio_cccr		*cccr;
+		struct sdio_embedded_func	*funcs;
+		int				num_funcs;
+	} embedded_sdio_data;
+#endif
+
+#ifdef CONFIG_BLOCK
+	int			latency_hist_enabled;
+	struct io_latency_state io_lat_s;
+#endif
 	/* Command Queue Engine (CQE) support */
 	const struct mmc_cqe_ops *cqe_ops;
 	void			*cqe_private;
 	int			cqe_qdepth;
 	bool			cqe_enabled;
 	bool			cqe_on;
-#ifdef CONFIG_MMC_CRYPTO
-	struct keyslot_manager	*ksm;
-	void *crypto_DO_NOT_USE[7];
-#endif /* CONFIG_MMC_CRYPTO */
 
 #ifdef CONFIG_MMC_EMBEDDED_SDIO
 	struct {
@@ -697,14 +710,18 @@ struct mmc_host {
 	struct mmc_request	*err_mrq;
 
 	bool inlinecrypt_support;  /* Inline encryption support */
+	bool inlinecrypt_reset_needed;  /* Inline crypto reset */
 
+	atomic_t rpmb_req_pending;
+	struct mutex		rpmb_req_mutex;
+	bool crash_on_err;	/* crash the system on error */
 	unsigned long		private[0] ____cacheline_aligned;
 };
 
 struct device_node;
 
 struct mmc_host *mmc_alloc_host(int extra, struct device *);
-extern bool mmc_host_may_gate_card(struct mmc_card *);
+extern bool mmc_host_may_gate_card(struct mmc_card *card);
 int mmc_add_host(struct mmc_host *);
 void mmc_remove_host(struct mmc_host *);
 void mmc_free_host(struct mmc_host *);
@@ -752,6 +769,8 @@ static inline void mmc_set_bus_resume_policy(struct mmc_host *host, int manual)
 {
 }
 #endif
+
+extern int mmc_resume_bus(struct mmc_host *host);
 
 extern int mmc_resume_bus(struct mmc_host *host);
 
@@ -823,21 +842,6 @@ static inline bool mmc_card_and_host_support_async_int(struct mmc_host *host)
 			(host->card->cccr.async_intr_sup));
 }
 
-static inline void mmc_host_clear_sdr104(struct mmc_host *host)
-{
-	host->caps &= ~MMC_CAP_UHS_SDR104;
-}
-
-static inline void mmc_host_set_sdr104(struct mmc_host *host)
-{
-	host->caps |= MMC_CAP_UHS_SDR104;
-}
-
-static inline int mmc_host_packed_wr(struct mmc_host *host)
-{
-	return host->caps2 & MMC_CAP2_PACKED_WR;
-}
-
 static inline void mmc_host_set_halt(struct mmc_host *host)
 {
 	set_bit(CMDQ_STATE_HALT, &host->cmdq_ctx.curr_state);
@@ -894,6 +898,7 @@ static inline int mmc_card_hs(struct mmc_card *card)
 		card->host->ios.timing == MMC_TIMING_MMC_HS;
 }
 
+/* TODO: Move to private header */
 static inline int mmc_card_uhs(struct mmc_card *card)
 {
 	return card->host->ios.timing >= MMC_TIMING_UHS_SDR12 &&

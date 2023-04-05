@@ -157,8 +157,6 @@ struct sdhci_msm_pltfm_data {
 	bool sdr104_wa;
 	u32 ice_clk_max;
 	u32 ice_clk_min;
-	u32 ddr_config;
-	bool rclk_wa;
 	u32 *bus_clk_table;
 	unsigned char bus_clk_cnt;
 };
@@ -272,9 +270,9 @@ struct sdhci_msm_host {
 	bool core_3_0v_support;
 	bool pltfm_init_done;
 	struct sdhci_msm_regs_restore regs_restore;
+	bool use_7nm_dll;
 	int soc_min_rev;
 	struct workqueue_struct *pm_qos_wq;
-	bool need_dll_user_ctl;
 	struct sdhci_msm_dll_hsr *dll_hsr;
 };
 

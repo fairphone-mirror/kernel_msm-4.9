@@ -244,7 +244,7 @@ static inline u32 cmdq_readl(struct cmdq_host *host, int reg)
 		return readl_relaxed(host->mmio + reg);
 }
 
-extern irqreturn_t cmdq_irq(struct mmc_host *mmc, int err, bool is_cmd_err);
+extern irqreturn_t cmdq_irq(struct mmc_host *mmc, int err);
 extern int cmdq_init(struct cmdq_host *cq_host, struct mmc_host *mmc,
 		     bool dma64);
 extern struct cmdq_host *cmdq_pltfm_init(struct platform_device *pdev);
