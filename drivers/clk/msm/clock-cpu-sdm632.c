@@ -742,7 +742,6 @@ static void print_opp_table(int a53_c0_cpu, int a53_c1_cpu)
 	apc1_fmax = perf_clk.c.fmax[perf_clk.c.num_fmax - 1];
 	apc1_fmin = perf_clk.c.fmax[1];
 
-	rcu_read_lock();
 	oppfmax = dev_pm_opp_find_freq_exact(get_cpu_device(a53_c0_cpu),
 						apc0_fmax, true);
 	oppfmin = dev_pm_opp_find_freq_exact(get_cpu_device(a53_c0_cpu),
@@ -756,6 +755,8 @@ static void print_opp_table(int a53_c0_cpu, int a53_c1_cpu)
 			apc0_fmin, dev_pm_opp_get_voltage(oppfmin));
 	pr_info("clock_cpu: a53_c0: OPP voltage for %lu: %ld\n",
 			apc0_fmax, dev_pm_opp_get_voltage(oppfmax));
+	dev_pm_opp_put(oppfmax);
+	dev_pm_opp_put(oppfmin);
 
 	oppfmax = dev_pm_opp_find_freq_exact(get_cpu_device(a53_c1_cpu),
 						apc1_fmax, true);
@@ -765,7 +766,8 @@ static void print_opp_table(int a53_c0_cpu, int a53_c1_cpu)
 		dev_pm_opp_get_voltage(oppfmin));
 	pr_info("clock_cpu: a53_c1: OPP voltage for %lu: %lu\n", apc1_fmax,
 		dev_pm_opp_get_voltage(oppfmax));
-	rcu_read_unlock();
+	dev_pm_opp_put(oppfmax);
+	dev_pm_opp_put(oppfmin);
 }
 
 static void populate_opp_table(struct platform_device *pdev)
