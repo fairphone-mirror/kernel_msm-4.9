@@ -20,6 +20,7 @@
 #include <linux/debugfs.h>
 #include <linux/slab.h>
 #include <linux/mutex.h>
+#include <linux/rtmutex.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/hrtimer.h>
