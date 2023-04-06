@@ -24,6 +24,7 @@
 #include <linux/msm-bus-board.h>
 #include <linux/regulator/consumer.h>
 #include <linux/sync_file.h>
+#include <linux/sched/clock.h>
 
 #include "mdss_rotator_internal.h"
 #include "mdss_mdp.h"
@@ -382,7 +383,7 @@ static int mdss_rotator_install_fence_fd(struct mdss_rot_entry_container *req)
 	struct sync_file *sync_file;
 
 	for (i = 0; i < req->count; i++) {
-		sync_file = sync_file_create((struct fence *)
+		sync_file = sync_file_create((struct dma_fence *)
 				(req->entries[i].output_fence));
 		if (!sync_file) {
 			ret = -ENOMEM;

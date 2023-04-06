@@ -27,6 +27,9 @@
 #include <linux/sort.h>
 #include <linux/kmemleak.h>
 #include <linux/kthread.h>
+#include <linux/sched.h>
+#include <uapi/linux/sched/types.h>
+#include <linux/sched/clock.h>
 #include <asm/div64.h>
 
 #include <soc/qcom/event_timer.h>
@@ -1243,7 +1246,7 @@ static void mdss_mdp_overlay_cleanup(struct msm_fb_data_type *mfd,
 			tmp = (struct mdss_mdp_pipe *)pipe->multirect.next;
 			if (tmp)
 				skip_fetch_halt =
-					atomic_read(&tmp->kref.refcount);
+					refcount_read(&tmp->kref.refcount);
 		}
 
 		/* make sure pipe fetch has been halted before freeing buffer */
