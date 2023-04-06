@@ -8,3 +8,5 @@ config COMMON_CLK_MSM
 	  global, mmss and gpu clock controller.
 	  Say Y if you want to support the clocks exposed by the MSM on
 	  platforms such as msm8953 etc.
+
+source "drivers/clk/msm/mdss/Kconfig"
