@@ -171,6 +171,8 @@
 		smd36 = &smdtty_loopback;
 		sdhc1 = &sdhc_1; /* SDC1 eMMC slot */
 		sdhc2 = &sdhc_2; /* SDC2 for SD card */
+		mmc0 = &sdhc_1;
+		mmc1 = &sdhc_2;
 		i2c1 = &i2c_1;
 		i2c2 = &i2c_2;
 		i2c3 = &i2c_3;
