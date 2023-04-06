@@ -166,4 +166,12 @@ config MSM_RPM_SMD
 	  the MSM_MPM config that programs the MPM module to monitor interrupts
 	  during sleep modes.
 
+config QCOM_BUS_SCALING
+	bool "Bus scaling driver"
+	help
+	This option enables bus scaling on MSM devices.  Bus scaling
+	allows devices to request the clocks be set to rates sufficient
+	for the active devices needs without keeping the clocks at max
+	frequency when a slower speed is sufficient.
+
 endmenu

@@ -17,6 +17,7 @@ obj-$(CONFIG_QCOM_SCM)  +=      scm.o scm-boot.o
 obj-$(CONFIG_SOC_BUS) += socinfo.o
 obj-$(CONFIG_MSM_SMEM) += msm_smem.o smem_debug.o
 obj-$(CONFIG_MSM_SMD)	+= msm_smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o
+obj-$(CONFIG_QCOM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_RPM_SMD)   +=  rpm-smd.o
 ifdef CONFIG_DEBUG_FS
 obj-$(CONFIG_MSM_RPM_SMD)   +=  rpm-smd-debug.o
